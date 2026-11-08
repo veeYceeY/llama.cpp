@@ -4304,6 +4304,12 @@ vk_device ggml_vk_get_device(size_t idx) {
             device->shader_core_count = 0;
         }
         device->float_controls_rte_fp16 = vk12_props.shaderRoundingModeRTEFloat16;
+        // The Imagination proprietary driver (DDK 1.19) advertises
+        // shaderRoundingModeRTEFloat16 but fails vkCreateComputePipelines with
+        // VK_ERROR_OUT_OF_HOST_MEMORY on shaders declaring RoundingModeRTE 16.
+        if (device->driver_id == vk::DriverId::eImaginationProprietary) {
+            device->float_controls_rte_fp16 = false;
+        }
         device->float_controls_denorm_preserve_fp16 = vk12_props.shaderDenormPreserveFloat16;
 
         device->subgroup_basic = (vk11_props.subgroupSupportedStages & vk::ShaderStageFlagBits::eCompute) &&
